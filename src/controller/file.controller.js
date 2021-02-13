@@ -3,6 +3,7 @@ const fs = require("fs");
 const baseUrl = "http://localhost:8080/files/";
 
 const upload = async (req, res) => {
+
   try {
     await uploadFile(req, res);
 
@@ -11,7 +12,8 @@ const upload = async (req, res) => {
     }
 
     res.status(200).send({
-      message: "Uploaded the file successfully: " + req.file.originalname,
+
+      message: "Uploaded the file successfully: " + req.file.originalname + (baseUrl+req.file.originalname),
     });
   } catch (err) {
     console.log(err);
@@ -29,6 +31,7 @@ const upload = async (req, res) => {
 };
 
 const getListFiles = (req, res) => {
+
   const directoryPath = __basedir + "/resources/static/assets/uploads/";
 
   fs.readdir(directoryPath, function (err, files) {
@@ -52,6 +55,7 @@ const getListFiles = (req, res) => {
 };
 
 const download = (req, res) => {
+
   const fileName = req.params.name;
   const directoryPath = __basedir + "/resources/static/assets/uploads/";
 
