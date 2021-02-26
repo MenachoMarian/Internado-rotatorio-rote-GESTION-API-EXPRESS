@@ -26,6 +26,10 @@ const gestion = require('../../database/gestion');
 const GESTION = gestion.model;
 const GESTIONSCHEMA = GESTION.schema;
 
+const documentorecibido = require('../../database/documentrecibidos');
+const DOCUMENTRECIBIDOS = documentorecibido.model;
+const DOCUMENTRECIBIDOSSCHEMA = documentorecibido.schema;
+
 
 
 
@@ -374,6 +378,90 @@ router.get("/gestion",async(req,res, next) => {
            res.status(200).json(list);
          });
 
+//DOCUEMNTOS RECIBIDOS REGISTRO
+router.post("/documentorecibido", async(req, res, next)=>{
+  var params = req.body;
+  //params["id"]=uuidv4();
+  params["register"] = new Date();
+
+  //var num = DOCUMENT.countDocuments()+1;
+  //num= num-1
+  //params["numero"] = num;
+
+  var documentorecibido = new DOCUMENTRECIBIDOS(params);
+  var result = await documentorecibido.save();
+  res.status(200).json(result);
+
+  });
+
+router.post("/documentorecibido/uploadImg", async(req,res)=>{
+  await uploadFile(req, res);
+    var id =req.query.identi;
+    if(id == null){
+      res.status(300).json({
+        "msn":"se debe especificar id"+req.file.originalname
+      });
+      return;
+    }
+    DOCUMENTRECIBIDOS.find({identi:id}).exec((err,docs)=>{
+      if(err){
+        res.status(300).json({
+          "msn":"se debe especificar id..."
+        });
+        return;
+      }
+            let imagename =req.file.originalname;
+            let linkimage = baseUrl+req.file.originalname;
+            DOCUMENTRECIBIDOS.updateOne({identi: id},
+              {$set:{picture:imagename, link:linkimage}},
+              (err, docs) => {
+              if (err) {
+                res.status(200).json({
+                  "msn" : err
+              });
+                return;
+              }
+              res.status(200).json(docs);
+            });
+    });
+  });
+
+  router.get("/documentorecibido",async(req,res, next) => {
+    var params = req.query;
+    var limit = 100;
+    if(params.limit != null){
+      limit = parseInt(params.limit);
+    }
+    var order = -1;
+    if(params.sort != null){
+      if(params.sort == "desc") {
+        order = -1;
+      }else if (params.sort == "asc") {
+        order = 1;
+      }
+    }
+    var filter = {};
+    if(params.id != null){
+      filter= {_id: params.id};
+    }
+    var fil = {};
+    if(params.nombre != null){
+      fil= {nombre: params.nombre}; }
+
+    var skip = 0;
+    if (params.skip != null) {
+      skip = parseInt(params.skip);
+    }
+
+    var last = {};
+    if (params.id != null) {
+      last= sort({_id:-1}.limit(1));
+    }
+    var list = await DOCUMENTRECIBIDOS.find(filter).limit(limit).sort({_id: order}).skip(skip).find(fil).find(last);
+    res.status(200).json(list);
+  });
+
+  //FIN DOCUEMNTOS RECIBIDOS
 
 
   app.use(router);
